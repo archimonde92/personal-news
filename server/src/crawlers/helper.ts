@@ -17,6 +17,7 @@ class CrawlerHelper {
     }
 
     static async loadDataFromUrlWithCheerio(url: string) {
+        console.log("Loading data from url: ", url);
         const data = await this.loadDataFromUrl(url);
         return cheerio.load(data);
     }

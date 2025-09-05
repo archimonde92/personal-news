@@ -7,7 +7,6 @@ const main = async () => {
     await connectMongo();
     await TelegrafInfra.init();
     const newBlogs = await Crawlers.MongoBlogCrawler.getNewBlogs();
-    
     if (newBlogs.length > 0) {
         for (const blog of newBlogs) {
             await sleep(1000);
@@ -16,6 +15,7 @@ const main = async () => {
     } else {
         console.log("No new blogs");
     }
+    process.exit(0);
 }
 
 main();

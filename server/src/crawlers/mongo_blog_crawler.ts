@@ -21,6 +21,7 @@ class MongoBlogCrawler {
             contentSnippet = CrawlerHelper.simplifyContentSnippet(contentSnippet);
 
             blogs.push({ title, link, date: new Date(date), category: [category], slug: CrawlerHelper.slugify(title), contentSnippet });
+            console.log("Found Blog: ", title);
         });
 
         for (const blog of blogs) {
@@ -52,8 +53,11 @@ class MongoBlogCrawler {
     }
 
     static async getNewBlogs() {
+        console.log("Getting new blogs");
         const blogs = await this.run();
+        console.log("Checking new blogs");
         const newBlogs = await this.checkNewBlog(blogs);
+        console.log("New blogs count: ", newBlogs.length);
         return newBlogs;
     }
 }
