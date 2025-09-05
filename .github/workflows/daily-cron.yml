@@ -1,0 +1,38 @@
+name: Daily Cron Job
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # chạy mỗi giờ 
+  push:
+    branches:
+      - main   # chỉ khi push vào main
+  workflow_dispatch:
+
+jobs:
+  daily-task:
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[run-job]')
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: dev
+      SERVER_NAME: crawler-blogs
+      SERVER_CODE: CBS
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      MONGO_DB_NAME: crawlers
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build 
+        run: npm run build
+
+      - name: Run script
+        run: npm run start
