@@ -1,15 +1,16 @@
 import { Telegraf } from "telegraf";
 import { AppEnvConfig } from "../../config";
-import { MongoBlogCrawler } from "../../crawlers/mongo_blog_crawler";
+import { MongoBlogCrawler, mongoCrawlerConfig } from "../../crawlers/mongo_blog_crawler_config";
 import { collections } from "../database/mongo";
 import { sleep } from "../../lib";
+import { typescriptCrawlerConfig } from "../../crawlers/typescript_blog_crawler_config";
 
 class TelegrafInfra {
     static telegraf: Telegraf;
     static async init() {
         this.telegraf = new Telegraf(AppEnvConfig.app.TELEGRAM_BOT_TOKEN);
         this.telegraf.start(async (ctx) => {
-            ctx.reply(`Hello, I'm a bot that sends you the interesting contents from the blogs. \n\nList intergrated blogs: \n- [MongoDB Blogs](${MongoBlogCrawler.MONGO_BLOG_URL})`, { parse_mode: "Markdown", link_preview_options: { is_disabled: true } });
+            ctx.reply(`Hello, I'm a bot that sends you the interesting contents from the blogs. \n\nList intergrated blogs: \n- [MongoDB Blogs](${mongoCrawlerConfig.blogUrl}) \n- [Typescript Blogs](${typescriptCrawlerConfig.blogUrl})`, { parse_mode: "Markdown", link_preview_options: { is_disabled: true } });
         });
 
         this.telegraf.command("whoami", async (ctx) => {
@@ -19,7 +20,7 @@ class TelegrafInfra {
         this.telegraf.command("subscribe", async (ctx) => {
             const follower = await collections.followers.findOne({ id: ctx.message.from.id.toString() });
             if (!follower) {
-                await collections.followers.insertOne({ id: ctx.message.from.id.toString(), username: ctx.message.from.username || "", languageCode: ctx.message.from.language_code || "vi", subscribedBlogs: ["MongoDB"], createdAt: new Date(), updatedAt: new Date() });
+                await collections.followers.insertOne({ id: ctx.message.from.id.toString(), username: ctx.message.from.username || "", languageCode: ctx.message.from.language_code || "vi", subscribedBlogs: ["MongoDB", "Typescript"], createdAt: new Date(), updatedAt: new Date() });
             }
             ctx.reply(`You are now subscribed to the blogs.`, { parse_mode: "Markdown" });
         });
@@ -48,13 +49,31 @@ class TelegrafInfra {
                 await sleep(1000)
                 await this.telegraf.telegram.sendPhoto(
                     follower.id,
-                    MongoBlogCrawler.MONGO_IMAGE_URL,
+                    mongoCrawlerConfig.imageUrl,
                     {
                         caption: `${message}`,
                         parse_mode: "Markdown",
                     }
                 );
                 console.log(`Sent mongo message to ${follower.username} ...`);
+            }
+        }
+    }
+
+    static async sendTypescriptMessage(message: string) {
+        const followers = await collections.followers.find({ subscribedBlogs: "Typescript" }).toArray();
+        for (const follower of followers) {
+            if (follower.subscribedBlogs.includes("Typescript")) {
+                await sleep(1000)
+                await this.telegraf.telegram.sendPhoto(
+                    follower.id,
+                    typescriptCrawlerConfig.imageUrl,
+                    {
+                        caption: `${message}`,
+                        parse_mode: "Markdown",
+                    }
+                );
+                console.log(`Sent typescript message to ${follower.username} ...`);
             }
         }
     }

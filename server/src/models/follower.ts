@@ -1,4 +1,4 @@
-type EBlog = "MongoDB"
+type EBlog = "MongoDB" | "Typescript"
 
 type Follower = {
     id: string;

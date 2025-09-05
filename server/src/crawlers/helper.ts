@@ -1,4 +1,8 @@
 import * as cheerio from "cheerio";
+import { Blog } from "../models/blog";
+import { collections } from "../infra/database/mongo";
+import { CherrioAPIToBlogConverter, CrawlerConfig } from "./types";
+
 
 class CrawlerHelper {
     static slugify(title: string) {
@@ -29,6 +33,40 @@ class CrawlerHelper {
     static async summaryContentSnippet(contentSnippet: string) {
         return contentSnippet.slice(0, 800) + "...";
     }
+
+    static async checkNewBlog(blogs: Blog[], category: string) {
+        const sortedBlogs = blogs.sort((a, b) => b.date.getTime() - a.date.getTime());
+        const blogCrawler = await collections.blog_crawlers.findOne({ name: category });
+        if (!blogCrawler) {
+            await collections.blog_crawlers.insertOne({ name: category, lastestBlogDate: sortedBlogs[0].date, lastestBlogSlug: sortedBlogs[0].slug, updatedAt: new Date() });
+            await collections.blogs.insertMany(sortedBlogs);
+            return sortedBlogs;
+        } else {
+            const newBlogs = sortedBlogs.filter(blog => blog.date > blogCrawler.lastestBlogDate);
+            if (newBlogs.length > 0) {
+                await collections.blog_crawlers.updateOne({ name: category }, { $set: { lastestBlogDate: newBlogs[0].date, lastestBlogSlug: newBlogs[0].slug, updatedAt: new Date() } });
+                await collections.blogs.insertMany(newBlogs);
+                return newBlogs;
+            }
+            return [];
+        }
+    }
+
+    static async runCrawler(config: CrawlerConfig, converter: CherrioAPIToBlogConverter) {
+        const $ = await CrawlerHelper.loadDataFromUrlWithCheerio(config.blogUrl);
+        const blogs: Blog[] = await converter($);
+        return blogs;
+    }
+
+    static async getNewBlogs(config: CrawlerConfig, converter: CherrioAPIToBlogConverter) {
+        console.log("Getting new blogs of ", config.category);
+        const blogs = await this.runCrawler(config, converter);
+        console.log("Checking new blogs of ", config.category);
+        const newBlogs = await CrawlerHelper.checkNewBlog(blogs, config.category);
+        console.log("New blogs of ", config.category, " count: ", newBlogs.length);
+        return newBlogs;
+    }
+
 }
 
 export { CrawlerHelper };
