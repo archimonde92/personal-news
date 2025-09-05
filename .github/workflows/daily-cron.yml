@@ -30,9 +30,12 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: server
 
       - name: Build 
         run: npm run build
+        working-directory: server
 
       - name: Run script
         run: npm run start
+        working-directory: api-service
