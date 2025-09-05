@@ -1,7 +1,7 @@
 import { Crawlers } from "./crawlers";
 import { connectMongo } from "./infra/database/mongo";
 import { TelegrafInfra } from "./infra/telegraf";
-import { sleep } from "./lib";
+import { errorConsoleLog, sleep } from "./lib";
 
 const main = async () => {
     await connectMongo();
@@ -15,6 +15,7 @@ const main = async () => {
     } else {
         console.log("No new blogs");
     }
+    errorConsoleLog('Exit script')
     process.exit(0);
 }
 
