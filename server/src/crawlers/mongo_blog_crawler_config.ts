@@ -23,7 +23,6 @@ const mongoBlogConverterFromCherrioAPI: CherrioAPIToBlogConverter = async ($: Ch
         contentSnippet = CrawlerHelper.simplifyContentSnippet(contentSnippet);
 
         blogs.push({ title, link, date: new Date(date), category: [category], slug: CrawlerHelper.slugify(title), contentSnippet });
-        console.log("Found Blog: ", title);
     });
 
     for (const blog of blogs) {
