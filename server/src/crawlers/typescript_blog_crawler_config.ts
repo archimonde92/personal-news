@@ -29,14 +29,11 @@ const typescriptBlogConverterFromCherrioAPI: CherrioAPIToBlogConverter = async (
         // Snippet
         let contentSnippet = $el.find("p.excerpt-body").text().trim();
         contentSnippet = CrawlerHelper.simplifyContentSnippet(contentSnippet);
-        blogs.push({ title, link, date: new Date(date), category, slug: CrawlerHelper.slugify(title), contentSnippet });
+        blogs.push({ title, link, date: new Date(date), category, slug: CrawlerHelper.slugify(title), contentSnippet, translatedSummaryContentSnippet: "", isSummarySuccess: false });
         
       });
 
-    for (const blog of blogs) {
-        const summaryContentSnippet = await CrawlerHelper.summaryContentSnippet(blog.contentSnippet);
-        blog.contentSnippet = summaryContentSnippet;
-    }
+   
     
     return blogs;
 }

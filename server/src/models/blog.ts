@@ -5,6 +5,8 @@ type Blog = {
     category: string[];
     slug: string;
     contentSnippet: string;
+    isSummarySuccess: boolean;
+    translatedSummaryContentSnippet: string;
 }
 
 export { Blog };

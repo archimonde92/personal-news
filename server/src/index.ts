@@ -8,10 +8,10 @@ const sendMessage = async (newBlogs: Blog[], type: "typescript" | "mongo") => {
     for (const blog of newBlogs) {
         if (type === "typescript") {
             await sleep(1000);
-            await TelegrafInfra.sendMessage(`\n*${blog.title}*\n_${blog.date.toLocaleDateString("vi-VN")}_\n\nCheck it out: [Here](${blog.link})\nTags: _${blog.category.join(", ")}_\n\nSummary: \n_${blog.contentSnippet}_`);
+            await TelegrafInfra.sendMessage(`\n*${blog.title}*\n_${blog.date.toLocaleDateString("vi-VN")}_\n\nCheck it out: [Here](${blog.link})\nTags: _${blog.category.join(", ")}_\n\nSummary: \n_${blog.isSummarySuccess ? blog.translatedSummaryContentSnippet : blog.contentSnippet}_`);
         } else {
             await sleep(1000);
-            await TelegrafInfra.sendMongoMessage(`\n*${blog.title}*\n_${blog.date.toLocaleDateString("vi-VN")}_\n\nCheck it out: [Here](${blog.link})\nTags: _${blog.category.join(", ")}_\n\nSummary: \n_${blog.contentSnippet}_`);
+            await TelegrafInfra.sendMongoMessage(`\n*${blog.title}*\n_${blog.date.toLocaleDateString("vi-VN")}_\n\nCheck it out: [Here](${blog.link})\nTags: _${blog.category.join(", ")}_\n\nSummary: \n_${blog.isSummarySuccess ? blog.translatedSummaryContentSnippet : blog.contentSnippet}_`);
         }
     }
 }

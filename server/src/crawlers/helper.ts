@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { Blog } from "../models/blog";
 import { collections } from "../infra/database/mongo";
 import { CherrioAPIToBlogConverter, CrawlerConfig } from "./types";
+import Summarizer from "./summerizer";
 
 
 class CrawlerHelper {
@@ -39,12 +40,30 @@ class CrawlerHelper {
         const blogCrawler = await collections.blog_crawlers.findOne({ name: category });
         if (!blogCrawler) {
             await collections.blog_crawlers.insertOne({ name: category, lastestBlogDate: sortedBlogs[0].date, lastestBlogSlug: sortedBlogs[0].slug, updatedAt: new Date() });
+            for (const blog of sortedBlogs) {
+                const summaryContentSnippet = await Summarizer.summarize(blog.contentSnippet);
+                if (summaryContentSnippet.startsWith("Xảy ra lỗi khi tóm tắt")) {
+                    blog.isSummarySuccess = false;
+                } else {
+                    blog.translatedSummaryContentSnippet = summaryContentSnippet || "";
+                    blog.isSummarySuccess = true;
+                }
+            }
             await collections.blogs.insertMany(sortedBlogs);
             return sortedBlogs;
         } else {
             const newBlogs = sortedBlogs.filter(blog => blog.date > blogCrawler.lastestBlogDate);
             if (newBlogs.length > 0) {
                 await collections.blog_crawlers.updateOne({ name: category }, { $set: { lastestBlogDate: newBlogs[0].date, lastestBlogSlug: newBlogs[0].slug, updatedAt: new Date() } });
+                for (const blog of newBlogs) {
+                    const summaryContentSnippet = await Summarizer.summarize(blog.contentSnippet);
+                    if (summaryContentSnippet.startsWith("Xảy ra lỗi khi tóm tắt")) {
+                        blog.isSummarySuccess = false;
+                    } else {
+                        blog.translatedSummaryContentSnippet = summaryContentSnippet || "";
+                        blog.isSummarySuccess = true;
+                    }
+                }
                 await collections.blogs.insertMany(newBlogs);
                 return newBlogs;
             }

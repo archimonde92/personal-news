@@ -9,6 +9,11 @@ const mongoCrawlerConfig = {
     category: "MongoDB",
 };
 
+function parseToUTC(dateStr: string) {
+    const d = new Date(dateStr);
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  }
+
 const mongoBlogConverterFromCherrioAPI: CherrioAPIToBlogConverter = async ($: CheerioAPI): Promise<Blog[]> => {
     const blogs: Blog[] = [];
 
@@ -21,15 +26,10 @@ const mongoBlogConverterFromCherrioAPI: CherrioAPIToBlogConverter = async ($: Ch
         const category = $(el).find("a.disp-block small").text().trim();
         let contentSnippet = $(el).find("p").text().trim();
         contentSnippet = CrawlerHelper.simplifyContentSnippet(contentSnippet);
-
-        blogs.push({ title, link, date: new Date(date), category: [category], slug: CrawlerHelper.slugify(title), contentSnippet });
+        blogs.push({ title, link, date: parseToUTC(date), category: [category], slug: CrawlerHelper.slugify(title), contentSnippet, translatedSummaryContentSnippet: "", isSummarySuccess: false });
+        console.log(`${title}, ${parseToUTC(date)}`)
     });
 
-    for (const blog of blogs) {
-        const summaryContentSnippet = await CrawlerHelper.summaryContentSnippet(blog.contentSnippet);
-        blog.contentSnippet = summaryContentSnippet;
-    }
-    
     return blogs;
 }
 
