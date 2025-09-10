@@ -19,6 +19,7 @@ jobs:
       MONGO_URI: ${{ secrets.MONGO_URI }}
       MONGO_DB_NAME: crawlers
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
